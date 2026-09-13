@@ -40,17 +40,37 @@ export default function DisplayPage() {
           setConnectionStatus('Waiting for remote connection...');
         });
 
-        peer.on('connection', (conn) => {
+        peer.on('connection', (newConn) => {
           if (!active) return;
+          // If there is an existing (ghost) connection, close it so we can seamlessly reconnect
+          if (connRef.current) {
+            connRef.current.close();
+          }
+
           setConnectionStatus('Remote connected!');
-          
-          conn.on('data', (data) => {
-            const command = data as RemoteCommand;
-            handleCommand(command);
+          connRef.current = newConn;
+
+          newConn.on('data', (data) => {
+            const cmd = data as RemoteCommand;
+            handleCommand(cmd);
           });
 
-          conn.on('close', () => {
-            setConnectionStatus('Remote disconnected. Waiting for connection...');
+          newConn.on('close', () => {
+            if (!active) return;
+            // Only reset state if this close event is from the active connection
+            if (connRef.current === newConn) {
+              setConnectionStatus('Remote disconnected. Waiting for connection...');
+              connRef.current = null;
+            }
+          });
+
+          newConn.on('error', (err) => {
+            console.error(err);
+            if (!active) return;
+            if (connRef.current === newConn) {
+              setConnectionStatus('Connection error. Check console.');
+              connRef.current = null;
+            }
           });
         });
 
