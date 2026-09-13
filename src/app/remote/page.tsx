@@ -20,6 +20,7 @@ export default function RemotePage() {
   
   const peerRef = useRef<Peer | null>(null);
   const connRef = useRef<any>(null);
+  const lastSend = useRef<number>(0);
 
   useEffect(() => {
     setConnectionStatus('Connecting to signaling server...');
@@ -110,6 +111,10 @@ export default function RemotePage() {
   };
 
   const sendCommand = (cmd: RemoteCommand) => {
+    const now = Date.now();
+    if (now - lastSend.current < 50) return; // Throttle to max 20 commands/sec to protect WebRTC buffer
+    lastSend.current = now;
+
     if (connRef.current && isConnected) {
       connRef.current.send(cmd);
       
@@ -159,7 +164,7 @@ export default function RemotePage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-zinc-950 text-white p-4 safe-area-pt">
+    <main className="flex min-h-screen flex-col bg-zinc-950 text-white p-4 safe-area-pt select-none touch-manipulation">
       <div className="flex justify-between items-center mb-6">
         <div className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-bold">
           Connected to {peerIdInput}

@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dance Remote 🕺📱
 
-## Getting Started
+A zero-latency, WebRTC-powered remote control application designed specifically for dance practice. Turn your smartphone into a powerful remote control for your laptop's video player, allowing you to control playback, set loops, and adjust speed from across the room without missing a beat.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Zero-Latency Remote Control**: Built on top of `peerjs` for direct peer-to-peer WebRTC communication. Commands are sent instantly over the local network or internet.
+- **Local File Support**: Drag and drop or select raw `.mp4` or `.mov` files from your laptop. Bypasses third-party libraries for lightning-fast native HTML5 playback.
+- **YouTube Integration**: Paste any YouTube link (even tricky mobile `youtu.be` or Shorts links). The app aggressively cleans tracking parameters and loads a dedicated, bug-free YouTube player.
+- **A/B Choreography Looping**: Set a Point A and Point B on the fly. Jump instantly back to Point A to drill specific sections of choreography.
+- **Speed & Volume Control**: Slow down complex routines to 0.5x speed directly from your phone.
+- **Mobile-Optimized Interface**: The remote UI is built for "no-look" usage with large tap targets, haptic-friendly active states, and numerical keypads for easy connection.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: Next.js (App Router)
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **WebRTC Broker**: PeerJS (using the free default cloud broker)
+- **Video Players**: Native HTML5 Video + `react-player` (v2.16.0 for React 18 compatibility)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Getting Started Locally
 
-## Learn More
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Connect**:
+   - Open your laptop browser to `http://localhost:3000`
+   - Select **Host (Laptop Display)**
+   - Open your phone browser and navigate to your laptop's local IP address (e.g., `http://192.168.x.x:3000`)
+   - Select **Remote (Phone)** and enter the 4-digit pairing code shown on your laptop.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment to Vercel
 
-## Deploy on Vercel
+The easiest way to use this app is to deploy it to Vercel. Once deployed, you no longer need to worry about local IP addresses—you can just use the public `.vercel.app` URL on both devices!
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Open a terminal in the project directory.
+2. Run the Vercel CLI tool:
+   ```bash
+   npx vercel
+   ```
+3. Follow the prompts to log in (if needed) and link your project.
+4. Enjoy your live, universally accessible remote!
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Architecture Notes
+
+- **Stale Closures & WebRTC**: To avoid React stale closure bugs commonly found in WebSocket/WebRTC listeners, incoming remote commands are pushed into a React state queue (`cmdQueue`). A `useEffect` then processes these commands, guaranteeing access to the freshest video player DOM references.
+- **Next.js & Custom Elements**: We explicitly use `react-player` v2 instead of v3 to bypass known React 18 property hydration bugs with Web Components (`youtube-video-element`), ensuring flawless YouTube Iframe initialization.
